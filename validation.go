@@ -41,7 +41,8 @@ func (s *Service) ValidateURL(input string) error {
 	if err != nil || u.Opaque != "" || u.User != nil || u.Host == "" || !u.IsAbs() {
 		return ErrInvalidURL
 	}
-	if u.Scheme != "https" && !(s.cfg.AllowHTTP && u.Scheme == "http") {
+	allowedScheme := u.Scheme == "https" || s.cfg.AllowHTTP && u.Scheme == "http"
+	if !allowedScheme {
 		return ErrInvalidURL
 	}
 	host := u.Hostname()
@@ -98,7 +99,8 @@ func validDNSOrIPv4(host string) bool {
 			return false
 		}
 		for _, c := range label {
-			if !(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '-') {
+			validCharacter := c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '-'
+			if !validCharacter {
 				return false
 			}
 		}

@@ -1,0 +1,18 @@
+# v2 configuration for golangci-lint v2.11.4, compatible with Go 1.26.
+version: '2'
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - ineffassign
+    - staticcheck
+    - unused
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

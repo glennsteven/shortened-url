@@ -15,3 +15,6 @@ coverage.html
 # Local Go workspace configuration
 go.work
 go.work.sum
+
+# Bytecode from CI release-validator tests
+.github/scripts/__pycache__/
