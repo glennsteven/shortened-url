@@ -1,3 +1,3 @@
-module shortened_url
+module github.com/glennsteven/shortened-url
 
-go 1.20
+go 1.26

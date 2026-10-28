@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    if: ${{ !github.event.deleted }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      GOTOOLCHAIN: local
+      GOWORK: 'off'
+      RELEASE_TAG: ${{ github.ref_name }}
+      TAG_CREATED: ${{ github.event.created }}
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Go from go.mod
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: false
+
+      - name: Validate tag and module path
+        shell: bash
+        run: |
+          if [[ "$TAG_CREATED" != true ]]; then
+            echo 'Release tags must be newly created; moving published tags is forbidden.'
+            exit 1
+          fi
+          module_path=$(go list -m -f '{{.Path}}')
+          python3 .github/scripts/validate_release.py "$RELEASE_TAG" "$module_path" "$GITHUB_REPOSITORY"
+
+      - name: Require the commit to be on main
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" FETCH_HEAD
+
+  verify:
+    name: Release verification
+    needs: validate
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  publish:
+    name: Publish GitHub Release
+    needs: [validate, verify]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ github.ref_name }}
+      RELEASE_COMMIT: ${{ github.sha }}
+    steps:
+      # This job runs no repository code and receives no build artifacts.
+      - name: Confirm the tag still points to the verified commit
+        shell: bash
+        run: |
+          actual_commit=$(gh api "repos/$GH_REPO/commits/$RELEASE_TAG" --jq '.sha')
+          if [[ "$actual_commit" != "$RELEASE_COMMIT" ]]; then
+            echo 'The tag moved after verification; refusing to publish.'
+            exit 1
+          fi
+
+      - name: Publish generated release notes
+        shell: bash
+        run: |
+          flags=()
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "$RELEASE_TAG" --verify-tag --generate-notes \
+            --title "$RELEASE_TAG" "${flags[@]}"

@@ -4,22 +4,25 @@ A small Go library for creating, resolving, expiring, and revoking URL mappings.
 It uses caller-owned storage and the Go standard library. It does not run an HTTP
 server, fetch destinations, resolve DNS, or open storage connections.
 
-The module path remains `shortened_url` for compatibility with this repository.
-Import it with the package alias `shorturl`. Go 1.20 or newer is required.
+The module path is `github.com/glennsteven/shortened-url`; the package is named
+`shorturl`. Go 1.26 or newer is required.
 
 ## Installation and usage
 
-The current module path is a local module name, not a publicly fetchable repository
-path. To use this checkout from another module, run:
+**Intended first version: `v0.1.0`. It is not yet a published or verified public
+release.** The repository had no version tags when checked during preparation.
+After the reviewed source is published at that tag, install it from your module:
 
 ```sh
-go mod edit -require=shortened_url@v0.0.0
-go mod edit -replace=shortened_url=/absolute/path/to/shortened-url
-go mod tidy
+# Run after v0.1.0 is published; this is the intended first version.
+go get github.com/glennsteven/shortened-url@v0.1.0
 ```
 
-Run `go mod tidy` after adding the import. Within this checkout, run the working
-example with `go run ./examples/basic`.
+The example below uses the public module path. Until a version is published, use a
+local checkout with a replace directive as described in
+[CONTRIBUTING.md](CONTRIBUTING.md#local-consumer-integration). A local replace build
+verifies integration only; it does not establish public availability.
+Within this checkout, run `go run ./examples/basic`.
 
 ```go
 package main
@@ -30,7 +33,7 @@ import (
     "log"
     "time"
 
-    shorturl "shortened_url"
+    shorturl "github.com/glennsteven/shortened-url"
 )
 
 func main() {
@@ -165,15 +168,16 @@ full destination URLs or query strings. URL validation does not prevent phishing
 or establish SSRF protection for applications that fetch destinations.
 
 This code has not undergone an independent security audit. No license was added:
-the owner must choose a license and confirm publication rights. A public module
-path also needs an explicit decision before publication.
+the owner must choose a license and confirm publication rights before publication.
 
 ## Legacy compatibility
 
 The previous packages `shortened`, `entity`, and `consts`, and root demonstration
-server have been replaced. Import `shortened_url` as `shorturl`, create a service,
+server have been replaced. Import `github.com/glennsteven/shortened-url` as `shorturl`, create a service,
 and use `Shorten`/`Resolve`/`Revoke` with contexts. `Extend`, `TransformWWW`, and
 `ValidLink` are removed; `Link` replaces the old `entity.URL` shape.
+This publication preparation changes the import identity only; the existing
+service API and link behavior are preserved.
 
 Before replacement, characterization tests passed for six-letter codes, repeated
 URL deduplication, rewriting bare hosts/HTTP/`www.` to HTTPS without `www.`, missing
@@ -205,3 +209,21 @@ go run ./examples/basic
 # When installed:
 govulncheck ./...
 ```
+
+## CI, reviews, and releases
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks, exact `main` branch
+protection settings, Code Owner review requirements, and release commands.
+CI runs formatting, lint, vet, race tests, example compilation, and vulnerability
+scanning with the Go version declared in `go.mod`. Require the **Go verification**
+status check before merging. CODEOWNERS requests reviews; branch protection must
+separately enforce them. Authors cannot approve their own PRs.
+
+Go module versions come from immutable semantic Git tags, with no version file.
+For v2 and later, module paths and imports generally need a matching `/v2` (or
+later major) suffix. The release workflow rejects major/path mismatches and reruns
+CI on the tagged commit before generating GitHub Release notes. No application
+binaries are published. GitHub Releases are optional for Go version resolution:
+the repository, module declaration, and Git tag must be valid and accessible.
+Never move or overwrite published versions; issue a new version for corrections.
+See the [Go module version rules](https://go.dev/ref/mod#versions).

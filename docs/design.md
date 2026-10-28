@@ -1,8 +1,8 @@
 # URL shortening library design
 
-The implementation is a single root package, `shorturl`, in the unchanged module
-`shortened_url`. It uses only the standard library. The executable under
-`examples/basic` demonstrates creation, resolution, and revocation without a server.
+The implementation is a single root package, `shorturl`, in the public module
+`github.com/glennsteven/shortened-url`. It requires Go 1.26 or newer and uses only the standard library.
+The executable under `examples/basic` demonstrates creation, resolution, and revocation without a server.
 
 ## API and ownership
 
@@ -97,5 +97,20 @@ when available.
 
 Consumers own authentication, authorization, TLS, abuse handling, rate limiting,
 HTTP redirects, and storage operations. This library is not independently audited.
-Publication still requires the owner's license/rights decision and a public module
-path decision. No license, release, commit, or push is part of this refactor.
+Publication still requires the owner's license/rights decision and verification of
+GitHub review/CI enforcement. The intended first version is v0.1.0, not yet
+published or verified for public installation. No license, release, commit, or push
+is part of this preparation.
+
+## Repository automation
+
+CI and the tag-triggered release workflow share the verification in
+`.github/workflows/ci.yml`. Only the release publishing job has contents write
+permission. It publishes generated notes after tag/module-major validation,
+main-branch ancestry verification, and successful checks against the tagged commit.
+No deployment, storage infrastructure, or application artifacts are involved.
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for branch protection and the manual
+release procedure. The confirmed public module path is compatible with v0.1.0.
+A separate consumer build using a local replace directive verifies integration;
+public availability requires retrieving and building an actually published tag
+without a replace directive.

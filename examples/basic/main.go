@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	shorturl "shortened_url"
 	"time"
+
+	shorturl "github.com/glennsteven/shortened-url"
 )
 
 func main() {
