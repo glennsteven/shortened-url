@@ -1,0 +1,17 @@
+# Local editor and operating system files
+.idea/
+.vscode/
+.DS_Store
+
+# Go build, test, and coverage outputs
+/bin/
+/basic
+*.test
+*.exe
+coverage.out
+coverage.html
+*.prof
+
+# Local Go workspace configuration
+go.work
+go.work.sum
